@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Star Wars API</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                // People button
+                $(`#peopleBtn`).click(function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get('/people', function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div class="row mt-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        // id created with dynamic number from 'Next' on the API call
+                        var links = `<div class="row justify-content-center mb-2">
+                                        <a id="allPeople" href="#">Get All ${data.count} People</a>
+                                        <a id="nextPeople/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-2" href="#">Next 10</a>
+                                    </div>`
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+                
+                // Planets button
+                $(`#planetsBtn`).click(function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get('/planets', function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div" class="row my-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        var links = `<div class="row justify-content-center mb-2">
+                                        <a id="allPlanets" href="#">Get All ${data.count} Planets</a>
+                                        <a id="nextPlanet/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-2" href="#">Next 10</a>
+                                    </div>`
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+
+                // Delgated functions (dynamically added content after DOM is created)
+
+                // All people link
+                $(`#links`).on(`click`, `#allPeople`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get("/people/all", function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data[0].name + "<p>"
+                        for (var i = 1; i < data.length; i++) {
+                            names = names + "<p>" + data[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div id="data" class="row mt-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').empty();
+                    }, 'json');
+                    return false;
+                })
+
+                // Next people link
+                // uses the ^ for an id that begins with 'nextPeople'
+                $(`#links`).on(`click`, `[id^='nextPeople']`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get(`/people/${this.id.slice(this.id.length-1, this.id.length)}`, function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div" class="row my-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        // Event handlers for links based on API data
+                        var links = `<div class="row justify-content-center mb-2">`
+                        if (data.previous !== null) {
+                            links += `<a id="prevPeople/${data.previous.slice(data.previous.length-1, data.previous.length)}" class="mx-2" href="#">Previous 10</a>`
+                        }
+                        links += `<a id="allPeople" class="mx-1" href="#">Get All ${data.count} People</a>`
+                        if (data.next !== null) {
+                            links += `<a id="nextPeople/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-2" href="#">Next 10</a>`
+                        }
+                        links += `</div>`
+
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+
+                // Prev people link
+                // uses the ^ for an id that begins with 'nextPeople'
+                $(`#links`).on(`click`, `[id^='prevPeople']`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get(`/people/${this.id.slice(this.id.length-1, this.id.length)}`, function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div" class="row my-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        // Event handlers for links based on API data
+                        var links = `<div class="row justify-content-center mb-2">`
+                        if (data.previous !== null) {
+                            links += `<a id="prevPeople/${data.previous.slice(data.previous.length-1, data.previous.length)}" class="mx-2" href="#">Previous 10</a>`
+                        }
+                        links += `<a id="allPeople" class="mx-1" href="#">Get All ${data.count} People</a>`
+                        if (data.next !== null) {
+                            links += `<a id="nextPeople/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-2" href="#">Next 10</a>`
+                        }
+                        links += `</div>`
+
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+
+                // All planets link
+                $(`#links`).on(`click`, `#allPlanets`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get('/planets/all', function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data[0].name + "<p>"
+                        for (var i = 1; i < data.length; i++) {
+                            names = names + "<p>" + data[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div id="data" class="row mt-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        var links = `<div id="links" class="row justify-content-center mb-2">
+                                        <a id="allPlanets" href="#">Get All ${data.length} People</a>
+                                    </div>`
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').empty();
+                    }, 'json');
+                    return false;
+                })
+
+                // Next planet link
+                // uses the ^ for an id that begins with 'nextPeople'
+                $(`#links`).on(`click`, `[id^='nextPlanet']`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get(`/planets/${this.id.slice(this.id.length-1, this.id.length)}`, function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div" class="row my-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        // Event handlers for links based on API data
+                        var links = `<div class="row justify-content-center mb-2">`
+                        if (data.previous !== null) {
+                            links += `<a id="prevPlanet/${data.previous.slice(data.previous.length-1, data.previous.length)}" class="mx-1" href="#">Previous 10</a>`
+                        }
+                        links += `<a id="allPlanets" class="mx-1" href="#">Get All ${data.count} People</a>`
+                        if (data.next !== null) {
+                            links += `<a id="nextPlanet/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-1" href="#">Next 10</a>`
+                        }
+                        links += `</div>`
+
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+
+                // Prev planet link
+                // uses the ^ for an id that begins with 'nextPeople'
+                $(`#links`).on(`click`, `[id^='prevPlanet']`, function() {
+                    // due to CORS, use a GET route to Node server for API call instead of directly calling from browser
+                    $.get(`/planets/${this.id.slice(this.id.length-1, this.id.length)}`, function(data) {
+                        console.log(data);
+
+                        var names = "<p>" + data.results[0].name + "<p>"
+                        for (var i = 1; i < data.results.length; i++) {
+                            names = names + "<p>" + data.results[i].name + "<p>"
+                        }
+
+                        // Parsing JSON from express server
+                        var html = `<div" class="row my-4">
+                                        <div class="col-12 bg-white border border-dark rounded p-2">
+                                            ${names}
+                                        </div>
+                                    </div>`
+                        
+                        // Event handlers for links based on API data
+                        var links = `<div class="row justify-content-center mb-2">`
+                        if (data.previous !== null) {
+                            links += `<a id="prevPlanet/${data.previous.slice(data.previous.length-1, data.previous.length)}" class="mx-1" href="#">Previous 10</a>`
+                        }
+                        links += `<a id="allPlanets" class="mx-1" href="#">Get All ${data.count} People</a>`
+                        if (data.next !== null) {
+                            links += `<a id="nextPlanet/${data.next.slice(data.next.length-1, data.next.length)}" class="mx-1" href="#">Next 10</a>`
+                        }
+                        links += `</div>`
+
+                        // Assigns the created HTML to data div
+                        $('#data').html(html);
+                        $('#links').html(links);
+                    }, 'json');
+                    return false;
+                })
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-6 bg-light m-4 border rounded">
+                    <div class="row m-4 justify-content-center">
+                        <h1 class="text-center">Star Wars Wiki</h1>
+                    </div>
+                    <div class="row justify-content-center m-3">
+                        <h3 class="text-center">What would you like to know more about?</h3>
+                    </div>
+                    <div class="row justify-content-center m-3">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-6 text-left">
+                                    <button id="peopleBtn" class="btn btn-primary">People</button>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <button id="planetsBtn" class="btn btn-primary">Planets</button>
+                                </div>
+                            </div>
+                            <div id="data">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div id="links">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
